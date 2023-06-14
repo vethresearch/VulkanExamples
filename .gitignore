@@ -80,6 +80,9 @@ ipch/
 *.VC.db
 *.VC.VC.opendb
 
+# VSCode
+vsbuild/
+
 # Visual Studio profiler
 *.psess
 *.vsp
