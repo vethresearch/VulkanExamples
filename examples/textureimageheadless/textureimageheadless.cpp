@@ -1359,13 +1359,16 @@ void RenderImage::loadTextureFromFile(std::string fname) {
 									0, 
 									(void **)&data));
 		memcpy(data, pixels, static_cast<size_t>(image_size));
-		vkUnmapMemory(device, staging_memory);
 
         printf("\tData vals = [");
         for (size_t ii = 0; ii < 12; ii++) {
             printf("%02x ", *(data + ii));
         }
         printf("]\n");
+
+
+		vkUnmapMemory(device, staging_memory);
+
 
 		// Setup buffer copy regions for each mip level
 		std::vector<VkBufferImageCopy> buffer_copy_regions;
