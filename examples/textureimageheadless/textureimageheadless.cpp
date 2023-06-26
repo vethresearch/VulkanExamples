@@ -20,6 +20,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+// #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <vulkan/vulkan.h>
@@ -607,10 +609,15 @@ void RenderImage::prepareSimpleVertexAndIndexBuffers() {
 }
 
 void RenderImage::prepareTextureVertexAndIndexBuffers() {
-	std::vector<TextureVertex> vertices = {
-		{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f, -1.0f, 0.0f }, {0.5f, 0.0f}, { 0.0f, 0.0f, 1.0f } }
+	// std::vector<TextureVertex> vertices = {
+	// 	{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
+	// 	{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
+	// 	{ { -1.0f, -1.0f, 0.0f }, {0.5f, 0.0f}, { 0.0f, 0.0f, 1.0f } }
+	// };
+    std::vector<TextureVertex> vertices = {
+		{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f} },
+		{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f} },
+		{ { -1.0f, -1.0f, 0.0f }, {0.5f, 0.0f} }
 	};
 	std::vector<uint32_t> indices = { 0, 1, 2 };
 
@@ -1101,12 +1108,12 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 	shader_stages[0].pName = "main";
-	shader_stages[0].module = vks::tools::loadShader((shaders_path + "texture_basic.vert.spv").c_str(), device);
+	shader_stages[0].module = vks::tools::loadShader((shaders_path + "texture_simple.vert.spv").c_str(), device);
 
 	shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 	shader_stages[1].pName = "main";
-	shader_stages[1].module = vks::tools::loadShader((shaders_path + "texture_basic.frag.spv").c_str(), device);
+	shader_stages[1].module = vks::tools::loadShader((shaders_path + "texture_simple.frag.spv").c_str(), device);
 	
 	shader_modules = { shader_stages[0].module, shader_stages[1].module };
 
@@ -1149,10 +1156,10 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	};
 
 	// Attribute descriptions
-	// The "texture.vert" vertex shader has three attributes: 
-	// 		vertex position
-	// 		texture uv coord
-	//		vertex normal
+	// The "texture_simple.vert" vertex shader has two attributes: 
+    // layout (location = 0) in vec3 inPos;
+    // layout (location = 1) in vec2 inUV;
+    // layout (location = 0) out vec2 outUV;
 	std::vector<VkVertexInputAttributeDescription> vertex_input_attributes = {
 		vks::initializers::vertexInputAttributeDescription(0, 
 														   0, 
@@ -1162,10 +1169,6 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 														   1, 
 														   VK_FORMAT_R32G32_SFLOAT, 
 														   sizeof(float) * 3),	// Texture coord
-		vks::initializers::vertexInputAttributeDescription(0, 
-														   2, 
-														   VK_FORMAT_R32G32B32_SFLOAT, 
-														   sizeof(float) * 5),	// Normal
 	};
 
 
@@ -1219,10 +1222,10 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &alloc_info, &descriptor_set));
 
-	VkDescriptorBufferInfo ubo_descriptor{};
-	ubo_descriptor.buffer = uniform_buffer_modelview;
-	ubo_descriptor.offset = 0;
-	ubo_descriptor.range = sizeof(UniformBufferObject);
+	// VkDescriptorBufferInfo ubo_descriptor{};
+	// ubo_descriptor.buffer = uniform_buffer_modelview;
+	// ubo_descriptor.offset = 0;
+	// ubo_descriptor.range = sizeof(UniformBufferObject);
 
 	// Setup a descriptor image info for the current texture to be used 
 	// as a combined image sampler
@@ -1233,19 +1236,19 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 
 	std::vector<VkWriteDescriptorSet> writeDescriptorSets =
 	{
-		// Binding 0 : Vertex shader uniform buffer
-		vks::initializers::writeDescriptorSet(
-			descriptor_set,
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			0,
-			&ubo_descriptor),
+		// // Binding 0 : Vertex shader uniform buffer
+		// vks::initializers::writeDescriptorSet(
+		// 	descriptor_set,
+		// 	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		// 	0,
+		// 	&ubo_descriptor),
 
 		// Binding 1 : Fragment shader texture sampler
 		//	Fragment shader: layout (binding = 1) uniform sampler2D samplerColor;
 		vks::initializers::writeDescriptorSet(
 			descriptor_set,
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		// The descriptor set will use a combined image sampler (sampler and image could be split)
-			1,												// Shader binding point 1
+			0,												// Shader binding point 0
 			&texture_descriptor)							// Pointer to the descriptor image for our texture
 	};
 
@@ -1254,15 +1257,12 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 						   writeDescriptorSets.data(), 
 						   0, 
 						   NULL);
-
-
-
-
-
 }
 
 void RenderImage::loadTextureFromFile(std::string fname) {
 	std::string texture_filename = getAssetPath() + fname;
+
+    std::cout << "Loading texture: " << texture_filename << "\n";
 
 	int tex_width, tex_height, tex_channels;
 	stbi_uc* pixels = stbi_load(texture_filename.c_str(), 
@@ -1281,6 +1281,13 @@ void RenderImage::loadTextureFromFile(std::string fname) {
 	texture.width = tex_width;
 	texture.height = tex_height;
 	texture.mipLevels = 1;
+
+    printf("Loaded texture [%d x %d] w/ %d channels.\n", texture.width, texture.height, tex_channels);
+    printf("\tPixel vals = [");
+    for (size_t ii = 0; ii < 12; ii++) {
+        printf("%02x ", *(pixels + ii));
+    }
+    printf("]\n");
 
 	// We prefer using staging to copy the texture data to a device local optimal image
 	VkBool32 use_staging = true;
@@ -1327,6 +1334,8 @@ void RenderImage::loadTextureFromFile(std::string fname) {
 		vkGetBufferMemoryRequirements(device, staging_buffer, &mem_reqs);
 		mem_alloc_info.allocationSize = mem_reqs.size;
 
+        printf("Created buffer w/ size request: %zd bytes.  Mem reqs: %zd\n", image_size, mem_reqs.size);
+
 		// Get memory type index for a host visible buffer
 		// memAllocInfo.memoryTypeIndex = vulkanDevice->getMemoryType(memReqs.memoryTypeBits, 
 		//                                                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
@@ -1351,6 +1360,12 @@ void RenderImage::loadTextureFromFile(std::string fname) {
 									(void **)&data));
 		memcpy(data, pixels, static_cast<size_t>(image_size));
 		vkUnmapMemory(device, staging_memory);
+
+        printf("\tData vals = [");
+        for (size_t ii = 0; ii < 12; ii++) {
+            printf("%02x ", *(data + ii));
+        }
+        printf("]\n");
 
 		// Setup buffer copy regions for each mip level
 		std::vector<VkBufferImageCopy> buffer_copy_regions;
@@ -1378,10 +1393,10 @@ void RenderImage::loadTextureFromFile(std::string fname) {
 		image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
 		image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 		image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
 		// Set initial layout of the image to undefined
 		image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		image_create_info.extent.width = texture.width;
-		image_create_info.extent.height = texture.height;
+		image_create_info.extent = {texture.width, texture.height, 1};
 		image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | 
 								  VK_IMAGE_USAGE_SAMPLED_BIT;
 		VK_CHECK_RESULT(vkCreateImage(device, &image_create_info, nullptr, &texture.image));
@@ -1394,11 +1409,14 @@ void RenderImage::loadTextureFromFile(std::string fname) {
 															VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 		// END REPLACE
 
+
 		VK_CHECK_RESULT(vkAllocateMemory(device, 
 										 &mem_alloc_info, 
 										 nullptr, 
 										 &texture.deviceMemory));
 		VK_CHECK_RESULT(vkBindImageMemory(device, texture.image, texture.deviceMemory, 0));
+
+        printf("Created image w/ mem reqs: %zd\n", mem_alloc_info.allocationSize);
 
 		// VkCommandBuffer copyCmd = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
 		VkCommandBuffer copy_cmd = createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, 
@@ -1687,7 +1705,7 @@ int main(int argc, char* argv[]) {
 	}	
 
 	unique_ptr<RenderImage> render_tool = make_unique<RenderImage>(640, 512, 
-																   "headless.png", 
+																   "headless.ppm", 
 																   !command_line_parser.isSet("use_vertex"));
 
 	std::cout << "Finished.  Have a great day ...\n";
