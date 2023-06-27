@@ -83,10 +83,10 @@ RenderImage::RenderImage(int32_t width_, int32_t height_,
 		camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
 		// Set ubo for texture vertex shader
-		ubo_scene.projection = camera.matrices.perspective;
-		ubo_scene.modelView = camera.matrices.view;
-		ubo_scene.viewPos = camera.viewPos;
-		ubo_scene.lodBias = 0.0f;
+		// ubo_scene.projection = camera.matrices.perspective;
+		// ubo_scene.modelView = camera.matrices.view;
+		// ubo_scene.viewPos = camera.viewPos;
+		// ubo_scene.lodBias = 0.0f;
 
 		loadTextureFromFile("textures/statue.jpg");
 		prepareTextureVertexAndIndexBuffers();
@@ -609,15 +609,10 @@ void RenderImage::prepareSimpleVertexAndIndexBuffers() {
 }
 
 void RenderImage::prepareTextureVertexAndIndexBuffers() {
-	// std::vector<TextureVertex> vertices = {
-	// 	{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
-	// 	{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
-	// 	{ { -1.0f, -1.0f, 0.0f }, {0.5f, 0.0f}, { 0.0f, 0.0f, 1.0f } }
-	// };
-    std::vector<TextureVertex> vertices = {
+	std::vector<TextureVertex> vertices = {
 		{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f} },
 		{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f} },
-		{ { -1.0f, -1.0f, 0.0f }, {0.5f, 0.0f} }
+		{ {  0.0f, -1.0f, 0.0f }, {0.0f, 0.0f} }
 	};
 	std::vector<uint32_t> indices = { 0, 1, 2 };
 
@@ -1000,31 +995,32 @@ void RenderImage::prepareGraphicsPipelineSimple() {
 void RenderImage::prepareGraphicsPipelineTexture() {
 
 	// prepareUniformBuffers()
+	
 	// Create uniform buffer objects to support vertex shader and fragment shader bindings
-	VkDeviceSize ubo_size = sizeof(UniformBufferObject);
-	VK_CHECK_RESULT(createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-								 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
-								 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-								 &uniform_buffer_modelview,
-								 &uniform_buffer_memory,
-								 sizeof(UniformBufferObject),
-								 &uniform_buffer_modelview));
+	// VkDeviceSize ubo_size = sizeof(UniformBufferObject);
+	// VK_CHECK_RESULT(createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+	// 							 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
+	// 							 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+	// 							 &uniform_buffer_modelview,
+	// 							 &uniform_buffer_memory,
+	// 							 sizeof(UniformBufferObject),
+	// 							 &uniform_buffer_modelview));
 
 
 	// setupDescriptorSetLayout()
 	// Add uniform buffer objects to bindings
 	std::vector<VkDescriptorSetLayoutBinding> set_layout_bindings =
 		{
-			// Binding 0 : Vertex shader uniform buffer
-			vks::initializers::descriptorSetLayoutBinding(
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				VK_SHADER_STAGE_VERTEX_BIT,
-				0),
-			// Binding 1 : Fragment shader image sampler
+			// // Binding 0 : Vertex shader uniform buffer
+			// vks::initializers::descriptorSetLayoutBinding(
+			// 	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			// 	VK_SHADER_STAGE_VERTEX_BIT,
+			// 	0),
+			// Binding 0 : Fragment shader image sampler
 			vks::initializers::descriptorSetLayoutBinding(
 				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 				VK_SHADER_STAGE_FRAGMENT_BIT,
-				1)
+				0)
 		};
 
 	VkDescriptorSetLayoutCreateInfo descriptor_layout =
@@ -1169,6 +1165,10 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 														   1, 
 														   VK_FORMAT_R32G32_SFLOAT, 
 														   sizeof(float) * 3),	// Texture coord
+		// vks::initializers::vertexInputAttributeDescription(0, 
+		// 												   2, 
+		// 												   VK_FORMAT_R32G32B32_SFLOAT, 
+		// 												   sizeof(float) * 5),	// Normal
 	};
 
 
@@ -1194,8 +1194,8 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	// Use one ubo and one image sampler
 	std::vector<VkDescriptorPoolSize> pool_sizes =
 	{
-		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
-											  1),
+		// vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
+		// 									  1),
 		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 
 											  1)
 	};
@@ -1204,7 +1204,7 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 		vks::initializers::descriptorPoolCreateInfo(
 			static_cast<uint32_t>(pool_sizes.size()),
 			pool_sizes.data(),
-			2);
+			1);
 
 	VK_CHECK_RESULT(vkCreateDescriptorPool(device, 
 											&descriptor_pool_info, 
