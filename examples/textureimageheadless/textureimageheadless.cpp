@@ -995,30 +995,30 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	// prepareUniformBuffers()
 	
 	// Create uniform buffer objects to support vertex shader and fragment shader bindings
-	VkDeviceSize ubo_size = sizeof(UniformBufferObject);
-	VK_CHECK_RESULT(createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-								 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
-								 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-								 &uniform_buffer_modelview,
-								 &uniform_buffer_memory,
-								 sizeof(UniformBufferObject),
-								 &uniform_buffer_modelview));
+	// VkDeviceSize ubo_size = sizeof(UniformBufferObject);
+	// VK_CHECK_RESULT(createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+	// 							 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
+	// 							 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+	// 							 &uniform_buffer_modelview,
+	// 							 &uniform_buffer_memory,
+	// 							 sizeof(UniformBufferObject),
+	// 							 &uniform_buffer_modelview));
 
 
 	// setupDescriptorSetLayout()
 	// Add uniform buffer objects to bindings
 	std::vector<VkDescriptorSetLayoutBinding> set_layout_bindings =
 		{
-			// Binding 0 : Vertex shader uniform buffer
-			vks::initializers::descriptorSetLayoutBinding(
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				VK_SHADER_STAGE_VERTEX_BIT,
-				0),
-			// Binding 1 : Fragment shader image sampler
+			// // Binding 0 : Vertex shader uniform buffer
+			// vks::initializers::descriptorSetLayoutBinding(
+			// 	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			// 	VK_SHADER_STAGE_VERTEX_BIT,
+			// 	0),
+			// Binding 0 : Fragment shader image sampler
 			vks::initializers::descriptorSetLayoutBinding(
 				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 				VK_SHADER_STAGE_FRAGMENT_BIT,
-				1)
+				0)
 		};
 
 	VkDescriptorSetLayoutCreateInfo descriptor_layout =
@@ -1102,12 +1102,12 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 	shader_stages[0].pName = "main";
-	shader_stages[0].module = vks::tools::loadShader((shaders_path + "texture_basic_v2.vert.spv").c_str(), device);
+	shader_stages[0].module = vks::tools::loadShader((shaders_path + "texture_simple.vert.spv").c_str(), device);
 
 	shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 	shader_stages[1].pName = "main";
-	shader_stages[1].module = vks::tools::loadShader((shaders_path + "texture_basic_v2.frag.spv").c_str(), device);
+	shader_stages[1].module = vks::tools::loadShader((shaders_path + "texture_simple.frag.spv").c_str(), device);
 	
 	shader_modules = { shader_stages[0].module, shader_stages[1].module };
 
@@ -1192,8 +1192,8 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	// Use one ubo and one image sampler
 	std::vector<VkDescriptorPoolSize> pool_sizes =
 	{
-		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
-											  1),
+		// vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
+		// 									  1),
 		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 
 											  1)
 	};
@@ -1202,7 +1202,7 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 		vks::initializers::descriptorPoolCreateInfo(
 			static_cast<uint32_t>(pool_sizes.size()),
 			pool_sizes.data(),
-			2);
+			1);
 
 	VK_CHECK_RESULT(vkCreateDescriptorPool(device, 
 											&descriptor_pool_info, 
@@ -1220,10 +1220,10 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &alloc_info, &descriptor_set));
 
-	VkDescriptorBufferInfo ubo_descriptor{};
-	ubo_descriptor.buffer = uniform_buffer_modelview;
-	ubo_descriptor.offset = 0;
-	ubo_descriptor.range = sizeof(UniformBufferObject);
+	// VkDescriptorBufferInfo ubo_descriptor{};
+	// ubo_descriptor.buffer = uniform_buffer_modelview;
+	// ubo_descriptor.offset = 0;
+	// ubo_descriptor.range = sizeof(UniformBufferObject);
 
 	// Setup a descriptor image info for the current texture to be used 
 	// as a combined image sampler
@@ -1234,19 +1234,19 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 
 	std::vector<VkWriteDescriptorSet> writeDescriptorSets =
 	{
-		// Binding 0 : Vertex shader uniform buffer
-		vks::initializers::writeDescriptorSet(
-			descriptor_set,
-			VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			0,
-			&ubo_descriptor),
+		// // Binding 0 : Vertex shader uniform buffer
+		// vks::initializers::writeDescriptorSet(
+		// 	descriptor_set,
+		// 	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		// 	0,
+		// 	&ubo_descriptor),
 
 		// Binding 1 : Fragment shader texture sampler
 		//	Fragment shader: layout (binding = 1) uniform sampler2D samplerColor;
 		vks::initializers::writeDescriptorSet(
 			descriptor_set,
 			VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		// The descriptor set will use a combined image sampler (sampler and image could be split)
-			1,												// Shader binding point 1
+			0,												// Shader binding point 1
 			&texture_descriptor)							// Pointer to the descriptor image for our texture
 	};
 
