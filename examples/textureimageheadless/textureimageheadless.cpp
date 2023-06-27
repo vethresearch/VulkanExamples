@@ -81,10 +81,10 @@ RenderImage::RenderImage(int32_t width_, int32_t height_,
 		camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
 		// Set ubo for texture vertex shader
-		ubo_scene.projection = camera.matrices.perspective;
-		ubo_scene.modelView = camera.matrices.view;
-		ubo_scene.viewPos = camera.viewPos;
-		ubo_scene.lodBias = 0.0f;
+		// ubo_scene.projection = camera.matrices.perspective;
+		// ubo_scene.modelView = camera.matrices.view;
+		// ubo_scene.viewPos = camera.viewPos;
+		// ubo_scene.lodBias = 0.0f;
 
 		loadTextureFromFile("textures/statue.jpg");
 		prepareTextureVertexAndIndexBuffers();
@@ -608,9 +608,9 @@ void RenderImage::prepareSimpleVertexAndIndexBuffers() {
 
 void RenderImage::prepareTextureVertexAndIndexBuffers() {
 	std::vector<TextureVertex> vertices = {
-		{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f}, { 0.0f, 0.0f, 1.0f } },
-		{ { -1.0f, -1.0f, 0.0f }, {0.5f, 0.0f}, { 0.0f, 0.0f, 1.0f } }
+		{ {  1.0f,  1.0f, 0.0f }, {1.0f, 1.0f} },
+		{ { -1.0f,  1.0f, 0.0f }, {0.0f, 1.0f} },
+		{ {  0.0f, -1.0f, 0.0f }, {0.0f, 0.0f} }
 	};
 	std::vector<uint32_t> indices = { 0, 1, 2 };
 
@@ -993,6 +993,7 @@ void RenderImage::prepareGraphicsPipelineSimple() {
 void RenderImage::prepareGraphicsPipelineTexture() {
 
 	// prepareUniformBuffers()
+	
 	// Create uniform buffer objects to support vertex shader and fragment shader bindings
 	VkDeviceSize ubo_size = sizeof(UniformBufferObject);
 	VK_CHECK_RESULT(createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -1101,12 +1102,12 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 	shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 	shader_stages[0].pName = "main";
-	shader_stages[0].module = vks::tools::loadShader((shaders_path + "texture_basic.vert.spv").c_str(), device);
+	shader_stages[0].module = vks::tools::loadShader((shaders_path + "texture_basic_v2.vert.spv").c_str(), device);
 
 	shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 	shader_stages[1].pName = "main";
-	shader_stages[1].module = vks::tools::loadShader((shaders_path + "texture_basic.frag.spv").c_str(), device);
+	shader_stages[1].module = vks::tools::loadShader((shaders_path + "texture_basic_v2.frag.spv").c_str(), device);
 	
 	shader_modules = { shader_stages[0].module, shader_stages[1].module };
 
@@ -1162,10 +1163,10 @@ void RenderImage::prepareGraphicsPipelineTexture() {
 														   1, 
 														   VK_FORMAT_R32G32_SFLOAT, 
 														   sizeof(float) * 3),	// Texture coord
-		vks::initializers::vertexInputAttributeDescription(0, 
-														   2, 
-														   VK_FORMAT_R32G32B32_SFLOAT, 
-														   sizeof(float) * 5),	// Normal
+		// vks::initializers::vertexInputAttributeDescription(0, 
+		// 												   2, 
+		// 												   VK_FORMAT_R32G32B32_SFLOAT, 
+		// 												   sizeof(float) * 5),	// Normal
 	};
 
 
@@ -1687,7 +1688,7 @@ int main(int argc, char* argv[]) {
 	}	
 
 	unique_ptr<RenderImage> render_tool = make_unique<RenderImage>(640, 512, 
-																   "headless.png", 
+																   "headless.ppm", 
 																   !command_line_parser.isSet("use_vertex"));
 
 	std::cout << "Finished.  Have a great day ...\n";
